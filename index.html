@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Anton Shubin - Code review report for REST API</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="styles.bundle.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+  <div class="intro-panel panel panel-default" id="intro">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-6">
+          <h1 class="display-1">
+            Welcome!
+          </h1>
+          <p>
+            In this document I'm going to share with you my recommendations
+            regarding codebase of
+            REST API.
+          </p>
+
+          <h3>Why?</h3>
+          <p>
+            API users, such as iOS developers complain about bugs, which appear
+            at API side pretty frequently.
+            Features, which worked previously stop working after something was
+            changed in another part of codebase.
+            That says that codebase isn't solid and has some amount of issues.
+          </p>
+        </div>
+        <div class="col-sm-4 col-sm-offset-1">
+          <img class="img-circle m-t-3 m-b-3"
+               src="https://avatars2.githubusercontent.com/u/4995814?v=3&amp;s=360">
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <h3>Scope</h3>
+          <p>
+            I need to tell that I reviewed mostly code itself and not the
+            infrastructure, like Amazon Web Services.
+          </p>
+          <p>
+            There are a lot of things, that could be reviewed and probably I'll
+            do detailed review
+            for other parts of the application. But for now let's dive deeper in
+            what could be improved in the code and what have to be improved.
+          </p>
+        </div>
+        <div class="col-sm-4 col-sm-offset-1">
+          <img class="img-circle m-t-3 m-b-3" src="assets/images/nodejs.png">
+        </div>
+      </div>
+
+      <hr>
+
+      <h3>What are we waiting for? Let's start!</h3>
+    </div>
+  </div>
+
+  <div class="repository-panel panel panel-default">
+    <div class="panel-heading panel-heading b-b-primary b-b-2">
+      <h2 class="panel-title" id="1-repository">
+        <a href="#1-repository">
+          1. Repository
+        </a>
+      </h2>
+    </div>
+    <div class="panel-body">
+      <p>
+        What does developer see first when he joins new team and going to work
+        on
+        codebase?
+        Right, the repo. And it could say a lot about how team manages
+        development.
+        Things like readme, branch management, commit message convention are
+        important. And let me tell you why.
+      </p>
+
+
+      <hr>
+
+
+      <h3 id="1-1-readme"><a href="#1-1-readme">1.1 Readme file</a></h3>
+
+      <p>
+        It shows newcomer what it is all about:
+      </p>
+      <ul>
+        <li>What is this repo?</li>
+        <li>What techlogies are used? Language? Platform?</li>
+        <li>What other applications use this one?</li>
+        <li>What style guide does the code follow?</li>
+        <li>What commit message convention is used?</li>
+        <li>How to launch this application?</li>
+        <li>How to test it?</li>
+        <li>How to deploy it?</li>
+      </ul>
+      <p>
+        It is hard for newcomer to figure out with the codebase without this
+        entry point.
+      </p>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is how it looks now:
+          </h4>
+          <a href="assets/images/1-repository/1-1-readme/now.png"
+             target="_blank">
+            <img src="assets/images/1-repository/1-1-readme/now.png">
+          </a>
+        </div>
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is what it should be:
+          </h4>
+          <a href="assets/images/1-repository/1-1-readme/should-be.png"
+             target="_blank">
+            <img src="assets/images/1-repository/1-1-readme/should-be.png">
+          </a>
+          <a
+            href="https://github.com/spy4x/reading-list-backend#backend-for-reading-list-app"
+            target="_blank">
+            Example
+          </a>
+        </div>
+      </div>
+
+
+      <hr>
+
+
+      <h3 id="1-2-branch-management"><a href="#1-2-branch-management">1.2 Branch
+        management</a></h3>
+
+      <p>
+        When you work in a team it's very important to keep branch list clear.
+      </p>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is how it looks now:
+          </h4>
+          <a href="assets/images/1-repository/1-2-branch-management/now.png"
+             target="_blank">
+            <img src="assets/images/1-repository/1-2-branch-management/now.png">
+          </a>
+          <p>
+            Main branch is <code>28MAR</code>. Name is not obvious.
+            It has not been updated since 2017-03-15.
+          </p>
+          <p>
+            Active branch is <code>*****-dynamodb-migration</code> and
+            from this moment I've felt that something is wrong with the
+            codebase.
+          </p>
+        </div>
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is what it should be:
+          </h4>
+          <p>
+            <code>master</code> branch is the main one. In most cases this
+            branch
+            stores code that is in production. It should be stable and secured
+            from altering.
+          </p>
+          <p>
+            Developers could create feature-based branches and once feature is
+            implemented and tested
+            - this branch should be merged into the <code>master</code> branch.
+          </p>
+
+          <p>
+            What are you talking about and why is it so important?
+          </p>
+          <p>
+            Well, all things, that I'm going to mention in this report work
+            together and depend on each other.
+            Correct branching management allows devs to configure Continuous
+            Integration(CI) and Continuous Deployment(CD).
+          </p>
+          <p>
+            <code>Continuous Integration</code> basically just means that the
+            developer's working copies are synchronized with a shared mainline
+            several times a day.
+          </p>
+          <p>
+            <code>Continuous Deployment</code> is described as the logical next
+            step after continuous integration: Automatically deploy the product
+            into production whenever it passes QA!
+          </p>
+
+          <p>
+            So... code should be deployed to production as frequent as possible.
+            And it happens when developer merges his feature-based branch to the
+            <code>master</code> branch.
+          </p>
+          <p>That's it. Small thing, but important one.</p>
+        </div>
+      </div>
+
+
+      <hr>
+
+
+      <h3 id="1-3-commit-message-convention">
+        <a href="#1-3-commit-message-convention">
+          1.3 Commit message convention
+        </a>
+      </h3>
+
+      <p>
+        It is a good idea to keep a note for yourself in the commit history.
+        And it should be done properly, or you'll curse yourself... or a guy who
+        wrote bad commit message.
+      </p>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is how it looks now:
+          </h4>
+          <a
+            href="assets/images/1-repository/1-3-commit-message-convention/now.png"
+            target="_blank">
+            <img
+              src="assets/images/1-repository/1-3-commit-message-convention/now.png">
+          </a>
+          <p>
+            Hard to understand in which module the change took place.
+          </p>
+          <p>
+            Hard to understand sometimes what was the change.
+          </p>
+          <p>
+            Hard to understand what type of change it was.
+          </p>
+
+        </div>
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is what it should be:
+          </h4>
+          <a
+            href="assets/images/1-repository/1-3-commit-message-convention/should-be.png"
+            target="_blank">
+            <img
+              src="assets/images/1-repository/1-3-commit-message-convention/should-be.png">
+          </a>
+          <p>
+            I build my own commit message format, that is based on
+            <a
+              href="https://github.com/angular/angular.js/blob/master/CONTRIBUTING.md#commit"
+              target="_blank">
+              Angular commit message convention.
+            </a>
+          </p>
+          <p>Example: <code>feat(splash-screen)#15: add logo image</code></p>
+          <p>That's what it is about:</p>
+          <ul>
+            <li><code>feat</code> - type of the change. Could be feat, fix, ui,
+              refactoring, etc.
+            </li>
+            <li><code>(splash-screen)</code> - What place/module of the app has
+              changed.
+            </li>
+            <li><code>#15</code> - Ticket id in your Issue Tracker. Easier to
+              understand why was the change.
+            </li>
+            <li><code>add logo image</code> - Change description</li>
+          </ul>
+          <a href="https://github.com/spy4x/reading-list-backend/commits/master"
+             target="_blank">
+            Example
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="repository-panel panel panel-default">
+    <div class="panel-heading panel-heading b-b-primary b-b-2">
+      <h2 class="panel-title" id="2-codebase">
+        <a href="#2-codebase">
+          2. Codebase
+        </a>
+      </h2>
+    </div>
+    <div class="panel-body">
+      <p>
+        The main issue with code is it's quality.
+        Following style guides, using latest versions of the language, modern
+        approaches
+        allows to write short clear code that's less affected by bugs.
+      </p>
+
+
+      <hr>
+
+
+      <h3 id="2-1-language"><a href="#2-1-language">2.1 Using latest version of
+        language</a></h3>
+
+      <p>
+        Just compare two pictures.
+      </p>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is how it looks now:
+          </h4>
+          <a href="assets/images/2-codebase/2-1-language/now.png"
+             target="_blank">
+            <img src="assets/images/2-codebase/2-1-language/now.png">
+          </a>
+        </div>
+        <div class="col-sm-6">
+          <h4 class="text-center">
+            This is what it should be:
+          </h4>
+          <a href="assets/images/2-codebase/2-1-language/should-be.png"
+             target="_blank">
+            <img src="assets/images/2-codebase/2-1-language/should-be.png">
+          </a>
+          <p>
+            That's the same code with the same meaning.
+            But it takes 5x less space and is more clear to understand.
+            This code works like sync code and has no nesting parts,
+            so developer has less opportunity to make a mistake.
+          </p>
+          <p>
+            There are a lot of places like this, that could be optimized.
+          </p>
+        </div>
+      </div>
+
+
+      <hr>
+
+
+      <h3 id="2-2-code-style">
+        <a href="#2-2-code-style">
+          2.2 Following style guides and best practices
+        </a>
+      </h3>
+
+      <p>
+        Code should follow style guides and best practices,
+        because these rules are written with blood...
+        I'm joking, with thousands of hours of debugging. That costs $$$.
+      </p>
+
+      <p>
+        Reviewed codebase has a lot of places, where code style is bad and has
+        to be fixed.
+      </p>
+      <p>
+        Some examples:
+      </p>
+
+      <div class="text-center">
+        <p>Deep code nesting or "Callback Hell":</p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/callback-hell.png"
+           target="_blank">
+          <img src="assets/images/2-codebase/2-2-code-style/callback-hell.png">
+        </a>
+
+        <hr>
+
+        <p>Wrong HTTP codes (should be 404 instead of 200):</p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/http-statuses.png"
+           target="_blank">
+          <img src="assets/images/2-codebase/2-2-code-style/http-statuses.png">
+        </a>
+
+        <hr>
+
+        <p>
+          Too much code in one file
+          (3168 lines, when average developer's screen contains just 30-40
+          lines):
+        </p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/long-file.png"
+           target="_blank">
+          <img src="assets/images/2-codebase/2-2-code-style/long-file.png">
+        </a>
+
+        <hr>
+
+        <p>
+          Rare error handling:
+        </p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/no-error-handling.png"
+           target="_blank">
+          <img
+            src="assets/images/2-codebase/2-2-code-style/no-error-handling.png">
+        </a>
+
+        <hr>
+
+        <p>
+          Secret keys stored in repo (could be stolen by someone who has read
+          access to the repo, like me. Should be stored in another place):
+        </p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/secret-keys.png"
+           target="_blank">
+          <img src="assets/images/2-codebase/2-2-code-style/secret-keys.png">
+        </a>
+
+        <hr>
+
+        <p>
+          Different things in one file (should be separated into different
+          modules):
+        </p>
+
+        <a class="m-b-1"
+           href="assets/images/2-codebase/2-2-code-style/not-structured.png"
+           target="_blank">
+          <img src="assets/images/2-codebase/2-2-code-style/not-structured.png">
+        </a>
+      </div>
+
+      <h3>And much more...</h3>
+    </div>
+  </div>
+
+
+  <div class="recommendations-panel panel panel-default">
+    <div class="panel-heading panel-heading b-b-primary b-b-2">
+      <h2 class="panel-title" id="3-recommendations">
+        <a href="#3-recommendations">
+          3. Conclusion and recommendations
+        </a>
+      </h2>
+    </div>
+    <div class="panel-body">
+      <p>
+        Code quality is pretty low.
+        It’s obvious that code was written by several developers in the past and
+        current version still uses some of old code without proper adaptation of
+        it. Also it looks like code was written in hurry by junior/middle
+        developers.
+      </p>
+      <p>
+        To allow developers to breath easier and product owners to get stable
+        application I recommend to do next things:
+      </p>
+
+
+      <h3>Remove unused code</h3>
+      <p>
+        Right now there are a lot of code in the repo, that’s not used anymore.
+        I calculated that about 70% of code is not used.
+        Some code looks like it doesn’t belong to this project at all.
+        That could be that when application was scaffolded -
+        somebody copied his previous project and started to write code for this
+        project
+        over that old code.
+      </p>
+
+      <h3>Refactor everything</h3>
+      <p>
+        There is a mess between v1 &amp; v2 versions in code.
+        iOS app has to call some endpoints from v1 and some from v2, that
+        doesn’t make sense
+        for new app that doesn't have to support legacy version of API.
+      </p>
+
+      <h3>Follow style guides and best practices</h3>
+      <p>
+        ESLint could be used to validate code.
+        It's automatic tool, that runs before every commit and prevents bad code
+        to appear in the repo.
+        That will save time of future improvements and feature implementations,
+        reduce amount of bugs.
+      </p>
+
+      <h3>Start using typed JavaScript - TypeScript or Flow</h3>
+      <p>
+        That reduces amount of runtime errors helping developer to catch a bug
+        as compile stage,
+        before pushing app to production server. Must-have for apps that are
+        going to evolve.
+      </p>
+
+      <h3>Start using Test-Driven Development (TDD, automated testing)</h3>
+      <p>
+        That’s the most important point in this list.
+        TDD - it's when test is written before implementation of the feature.
+        Without previous features covered by tests it’s harder to go forward or
+        improve feature without breaking something that already worked.
+        Must-have thing.
+      </p>
+
+      <div class="text-center">
+        <a class="m-b-1" href="assets/images/3-recommendations/tdd.gif"
+           target="_blank">
+          <img src="assets/images/3-recommendations/tdd.gif">
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="contacts-panel panel panel-default">
+    <div class="panel-heading panel-heading b-b-primary b-b-2">
+      <h2 class="panel-title" id="4-contacts">
+        <a href="#4-contacts">
+          Feel free to contact me if you need any help with codebase or deeper
+          analysis
+        </a>
+      </h2>
+    </div>
+    <div class="panel-body">
+      <p>
+        Email: <a href="mailto:2spy4x@gmail.com">2spy4x@gmail.com</a>
+      </p>
+      <p>
+        Skype: <a
+        href="skype:live:2spy4x@gmail.com?call">live:2spy4x@gmail.com</a>
+      </p>
+      <p>
+        Upwork: <a
+        href="https://www.upwork.com/freelancers/~01bad246d7ab0effef">Anton
+        Shubin</a>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
